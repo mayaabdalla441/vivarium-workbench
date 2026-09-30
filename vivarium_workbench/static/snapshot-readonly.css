@@ -69,8 +69,8 @@ body.snapshot a.menu-link[data-page="github"] {
   display: none !important;
 }
 
-/* ── AI panel + its rail toggle: live-server only (they call /api/chat and /api/ai) ── */
-body.snapshot #viv-ai-toggle,
+/* ── AI panel + its right-edge Chat tab: live-server only (they call /api/chat and /api/ai) ── */
+body.snapshot #viv-ai-edge,
 body.snapshot #viv-ai-panel {
   display: none !important;
 }

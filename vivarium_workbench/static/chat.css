@@ -37,9 +37,27 @@
 .vp-root{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
 body.snapshot #viv-ai-panel{ display:none !important; }
 
-/* Rail toggle: pressed state (it is not a .menu-link, so page switches leave it alone) */
-#viv-ai-toggle.viv-ai-on{ background:var(--hover, #eef2ff); color:#4338ca; }
-:root[data-theme="dark"] #viv-ai-toggle.viv-ai-on{ background:var(--active, #20304f); color:var(--link, #8ab4ff); }
+/* ── Collapsed right-edge "Chat" tab (the launcher) ────────────────────────────
+   Mirrors the Code rail's edge tab (.viv-code-edge) so the two sit side by side as a
+   single right-hand menu: [💬 Chat][</> Code]. Closed = this 34px tab; open = the panel. */
+.viv-ai-panel.viv-ai-collapsed{
+  --viv-ai-w:34px; flex:0 0 34px; width:34px; min-width:34px;
+}
+.viv-ai-panel.viv-ai-collapsed > .vp-resize,
+.viv-ai-panel.viv-ai-collapsed > .vp-root,
+.viv-ai-panel.viv-ai-collapsed > #viv-ai-card{ display:none !important; }
+
+.viv-ai-edge{
+  display:none; position:absolute; inset:0; width:34px;
+  border:0; background:transparent; cursor:pointer; padding:0;
+  color:var(--c-muted);
+}
+.viv-ai-panel.viv-ai-collapsed > .viv-ai-edge{ display:flex; align-items:center; justify-content:center; }
+.viv-ai-edge:hover{ background:var(--hover, #f1f5f9); color:var(--c-accent); }
+.viv-ai-edge-label{
+  writing-mode:vertical-rl; transform:rotate(180deg);
+  font-size:0.78rem; font-weight:600; letter-spacing:.04em; white-space:nowrap;
+}
 
 /* Resize handle (left edge) */
 .vp-resize{ position:absolute; left:-3px; top:0; bottom:0; width:6px; cursor:col-resize; z-index:5; }
@@ -279,7 +297,7 @@ body.snapshot #viv-ai-panel{ display:none !important; }
 .viv-ai-panel[data-dock="bottom"]{ flex:0 0 var(--viv-ai-h, 320px); width:auto; height:var(--viv-ai-h, 320px); min-height:0;
   border-left:none; border-top:1px solid var(--c-border); }
 .viv-ai-panel[data-dock="bottom"] .vp-resize{ left:0; right:0; top:-3px; bottom:auto; width:auto; height:6px; cursor:row-resize; }
-body.focus-mode .viv-ai-panel, body.focus-mode #viv-ai-toggle{ display:none !important; }
+body.focus-mode .viv-ai-panel{ display:none !important; }
 .vp-head{ cursor:grab; user-select:none; }
 .vp-head .vp-icon{ cursor:pointer; }
 

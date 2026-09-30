@@ -948,22 +948,10 @@ a.viv-bs-commit:hover { text-decoration: underline; }
         </span>
         <span class="viv-rail-link-label">Analysis</span>
       </a>
-      <!-- AI: toggles the docked chat panel on the right (docs/ai-chat.md). Not a page,
-           and deliberately NOT a .menu-link (so page switches don't clear its state).
-           Live-only — hidden in the read-only snapshot (snapshot-readonly.css). -->
-      <a href="#" id="viv-ai-toggle" class="viv-rail-link" role="button" aria-pressed="false" title="VivaChat">
-        <span class="viv-rail-link-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="viv-rail-link-svg">
-            <rect x="5" y="8" width="14" height="10" rx="2.5"/>
-            <path d="M12 4.5 V8"/>
-            <circle cx="12" cy="3.6" r="0.9"/>
-            <circle cx="9.5" cy="13" r="1" fill="currentColor" stroke="none"/>
-            <circle cx="14.5" cy="13" r="1" fill="currentColor" stroke="none"/>
-            <path d="M3 12 V15 M21 12 V15"/>
-          </svg>
-        </span>
-        <span class="viv-rail-link-label">VivaChat</span>
-      </a>
+      <!-- VivaChat is no longer a left-rail item — it now lives on the RIGHT edge
+           as a "Chat" tab paired with the "Code" tab (see #viv-ai-edge inside
+           #viv-ai-panel + the #viv-code-rail edge tab), so you switch between the
+           chat and the process code from the same right-hand menu. -->
       <!-- The Branch page (#github) is no longer a rail item — it's reached by
            clicking the workspace source display at the top of the rail (see
            #viv-workspace-switcher). Hash route #github kept for back-compat. -->
@@ -2059,6 +2047,13 @@ a.viv-bs-commit:hover { text-decoration: underline; }
      chat into #viv-ai; the settings sheet below is what the gear opens (static/ai-login.js).
      Live-only — hidden in the read-only snapshot. -->
 <aside id="viv-ai-panel" class="viv-ai-panel" hidden aria-label="VivaChat">
+  <!-- Right-edge "Chat" tab: the launcher, paired with the "Code" edge tab next to
+       it. Shown only while the panel is collapsed (see .viv-ai-edge CSS + chat.js);
+       clicking it expands the chat. Docked right so both panels can be open at once. -->
+  <button id="viv-ai-edge" class="viv-ai-edge" type="button"
+          title="Show VivaChat" aria-label="Show VivaChat" aria-pressed="false">
+    <span class="viv-ai-edge-label">💬 Chat</span>
+  </button>
   <div class="vp-resize" id="viv-ai-resize" title="Drag to resize"></div>
   <div class="vp-root" id="viv-ai"></div>
   <div id="viv-ai-card" class="vp-settings" hidden>

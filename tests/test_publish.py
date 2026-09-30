@@ -982,12 +982,12 @@ def test_snapshot_bundle_hides_the_ai_panel_and_its_toggle(tmp_workspace, tmp_pa
 
     # The elements the hide rules target really exist in the shell (so the rules aren't
     # vacuous), the chat is no longer a page, and the chat assets ship with the bundle.
-    for needle in ('id="viv-ai-panel"', 'id="viv-ai-toggle"', 'id="viv-ai-card"'):
+    for needle in ('id="viv-ai-panel"', 'id="viv-ai-edge"', 'id="viv-ai-card"'):
         assert needle in html, f"shell lost {needle}"
     assert 'id="page-chat"' not in html and 'data-page="chat"' not in html
     for asset in ("chat.css", "chat-core.js", "ai-models.js", "chat.js", "ai-login.js"):
         assert (out / "assets" / asset).is_file(), f"bundle missing assets/{asset}"
-    for sel in ("body.snapshot #viv-ai-toggle", "body.snapshot #viv-ai-panel"):
+    for sel in ("body.snapshot #viv-ai-edge", "body.snapshot #viv-ai-panel"):
         assert sel in css, f"snapshot-readonly.css missing {sel!r}"
     # chat.css must load BEFORE snapshot-readonly.css so the hide rules win.
     assert html.index("chat.css") < html.index("snapshot-readonly.css")

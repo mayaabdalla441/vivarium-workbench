@@ -51,7 +51,10 @@
   const layout = document.querySelector('.viv-layout');
   const mainEl = layout && layout.querySelector('.viv-main');
   const codeRail = document.getElementById('viv-code-rail');
-  let dock = C.validDock(lsGet('viv.ai.dock', 'left')) ? lsGet('viv.ai.dock', 'left') : 'left';
+  // VivaChat lives on the RIGHT edge by default, paired with the Code rail. The panel
+  // can still be dragged to the left/bottom while open, but it always collapses back to
+  // the right edge tab when closed (that tab is the only launcher).
+  let dock = C.validDock(lsGet('viv.ai.dock', 'right')) ? lsGet('viv.ai.dock', 'right') : 'right';
 
   function lsGet(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (x) { return d; } }
   function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (x) { /* private mode */ } }
@@ -821,11 +824,18 @@
   }
 
   // ── Panel: open/close, resize, settings sheet ─────────────────────────────
+  // Closed = collapsed to the 34px right-edge "Chat" tab (parked beside the Code rail),
+  // never fully removed, so the launcher is always present. Open = the full panel at the
+  // user's chosen dock (right by default). The panel stays in the flex flow either way.
   function setOpen(open) {
-    panel.hidden = !open;
+    panel.hidden = false;
+    panel.classList.toggle('viv-ai-collapsed', !open);
+    placeForDock(open ? dock : 'right');            // park on the right edge while collapsed
     document.body.classList.toggle('viv-ai-open', open);
-    el.toggle.classList.toggle('viv-ai-on', open);
-    el.toggle.setAttribute('aria-pressed', open ? 'true' : 'false');
+    if (el.toggle) {
+      el.toggle.classList.toggle('viv-ai-on', open);
+      el.toggle.setAttribute('aria-pressed', open ? 'true' : 'false');
+    }
     lsSet('viv.ai.open', open ? '1' : '0');
     syncDockVars();
     if (open) {
@@ -842,6 +852,13 @@
   // ── Docking ───────────────────────────────────────────────────────────────
   const sizeKey = (d) => d === 'bottom' ? 'viv.ai.h' : 'viv.ai.w';
   function applySize() {
+    // Collapsed → the edge tab's fixed 34px width comes from CSS; an inline size would
+    // (as an inline style) beat that rule, so clear it and let the class win.
+    if (panel.classList.contains('viv-ai-collapsed')) {
+      panel.style.removeProperty('--viv-ai-w');
+      panel.style.removeProperty('--viv-ai-h');
+      return;
+    }
     const n = parseInt(lsGet(sizeKey(dock), ''), 10);
     const size = C.clampDock(dock, n || (dock === 'bottom' ? 320 : 440), innerWidth, innerHeight);
     panel.style.setProperty(dock === 'bottom' ? '--viv-ai-h' : '--viv-ai-w', size + 'px');
@@ -859,18 +876,27 @@
     root.setProperty('--viv-ai-bottom', on && dock === 'bottom' ? Math.round(r.height) + 'px' : '0px');
     window.dispatchEvent(new CustomEvent('viv:ai-layout'));
   }
-  function dockTo(zone, persist) {
+  // Insert the panel at the given dock position (right = beside the Code rail). Does not
+  // change the persisted `dock` preference — setOpen uses it to park collapsed on the right.
+  function placeForDock(zone) {
     if (!C.validDock(zone) || !layout || !mainEl) return;
-    closePop();
-    dock = zone;
     panel.dataset.dock = zone;
     if (zone === 'left') layout.insertBefore(panel, mainEl);
     else if (zone === 'right') layout.insertBefore(panel, codeRail || null);
     else mainEl.appendChild(panel);                       // below <main>, inside the flex column
     applySize();
+  }
+  function dockTo(zone, persist) {
+    if (!C.validDock(zone) || !layout || !mainEl) return;
+    closePop();
+    dock = zone;
     if (persist) lsSet('viv.ai.dock', zone);
-    syncDockVars();
-    if (!panel.hidden) scrollDown(true);
+    // Move a visible panel to the new dock; a collapsed panel stays parked as the right tab.
+    if (!panel.classList.contains('viv-ai-collapsed')) {
+      placeForDock(zone);
+      syncDockVars();
+      scrollDown(true);
+    }
   }
 
   function initResize() {
@@ -945,9 +971,12 @@
     }
     // The rail item is an <a>: without this the browser starts a native link drag, which cancels
     // the pointer events and would strand the ghost chip and drop zones on screen.
+    // The edge tab is a pure launcher (no drag-to-dock). An OPEN panel is still
+    // draggable by its header to re-dock left/right/bottom; closing parks it back on
+    // the right edge. draggable=false keeps a native button/text drag from stranding
+    // the ghost chip + drop zones mid-gesture.
     el.toggle.setAttribute('draggable', 'false');
     el.toggle.addEventListener('dragstart', function (ev) { ev.preventDefault(); });
-    el.toggle.addEventListener('pointerdown', function (ev) { begin(ev, 'rail'); });
     panel.querySelector('.vp-head').addEventListener('pointerdown', function (ev) { begin(ev, 'header'); });
   }
 
@@ -1022,7 +1051,7 @@
     el.input = composer.querySelector('#vp-input'); el.pills = composer.querySelector('#vp-pills'); el.flash = composer.querySelector('#vp-flash');
     el.mode = composer.querySelector('#vp-mode'); el.model = composer.querySelector('#vp-model');
     el.send = composer.querySelector('#vp-send'); el.file = composer.querySelector('#vp-file');
-    el.card = document.getElementById('viv-ai-card'); el.toggle = document.getElementById('viv-ai-toggle');
+    el.card = document.getElementById('viv-ai-card'); el.toggle = document.getElementById('viv-ai-edge');
     el.pinned = true;
 
     el.list.addEventListener('scroll', function () { el.pinned = nearBottom(); el.scroll.hidden = el.pinned; });
@@ -1119,8 +1148,8 @@
       }
     }, true);
 
-    el.toggle.addEventListener('click', function (ev) { ev.preventDefault(); if (justDragged) return; setOpen(panel.hidden); });
-    el.toggle.title = 'VivaChat — click to toggle, drag to dock left, right or bottom';
+    el.toggle.addEventListener('click', function (ev) { ev.preventDefault(); if (justDragged) return; setOpen(panel.classList.contains('viv-ai-collapsed')); });
+    el.toggle.title = 'VivaChat — open the chat panel';
     document.getElementById('viv-ai-back').addEventListener('click', closeSettings);
     window.addEventListener('viv:ai-changed', function () { refreshStatus(); });
     initResize();
@@ -1134,7 +1163,8 @@
     // A corrupted stored transcript must not take the panel down.
     store = C.newStore(); state = C.restore(store.chats[store.active].snap); save(); renderAll();
   }
-  dockTo(dock, false);
   window._openAiPanel = function () { setOpen(true); };
-  if (lsGet('viv.ai.open', '0') === '1') setOpen(true);
+  // Render the initial state: either the open panel at the chosen dock, or the collapsed
+  // right-edge Chat tab. setOpen handles placement, so no separate dockTo is needed here.
+  setOpen(lsGet('viv.ai.open', '0') === '1');
 })();
